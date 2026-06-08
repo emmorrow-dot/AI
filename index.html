@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infrastructure &amp; Operations in the Age of AI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeedea;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #9c9a92;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --danger-bg: #FCEBEB; --danger-text: #A32D2D;
+    --warning-bg: #FAEEDA; --warning-text: #854F0B;
+    --success-bg: #EAF3DE; --success-text: #27500A;
+    --info-bg: #E6F1FB; --info-text: #0C447C;
+    --radius-md: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #242422; --bg3: #2c2c2a;
+      --text: #e8e6de; --text2: #a8a69e; --text3: #6e6c66;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+      --danger-bg: #3d1515; --danger-text: #f09595;
+      --warning-bg: #3d2a0a; --warning-text: #FAC775;
+      --success-bg: #1a2e0a; --success-text: #C0DD97;
+      --info-bg: #0a1e3d; --info-text: #85B7EB;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+  .page { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .page-header { margin-bottom: 1.5rem; }
+  .page-title { font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .stat { background: #0C3354; border-radius: var(--radius-md); padding: .9rem 1rem; }
+  .stat-num { font-size: 26px; font-weight: 500; color: #ffffff; line-height: 1.1; }
+  .stat-label { font-size: 12px; color: #C6EFFC; margin-top: 3px; }
+  .note-bar { font-size: 12px; color: var(--text3); background: var(--bg2); padding: 8px 12px; border-radius: var(--radius-md); margin-bottom: 1.5rem; line-height: 1.5; }
+  .tabs { display: flex; gap: 2px; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab { padding: 8px 14px; font-size: 13px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; white-space: nowrap; font-family: inherit; }
+  .tab.active { color: #0C3354; border-bottom: 2px solid #297496; font-weight: 500; background: #C6EFFC; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+  .tab:hover:not(.active) { color: var(--text); }
+  .panel { display: none; } .panel.active { display: block; }
+  .sec-title { font-size: 15px; font-weight: 500; color: var(--text); margin: 1.5rem 0 .75rem; }
+  .sec-title:first-child { margin-top: 0; }
+  .hm-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+  .hm-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .hm-table th { font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 4px; text-align: center; border-bottom: 0.5px solid var(--border2); background: var(--bg2); }
+  .hm-table th.theme-col { text-align: left; padding-left: 0; width: 32%; }
+  .hm-table td { padding: 5px 4px; text-align: center; font-size: 12px; color: var(--text2); border-bottom: 0.5px solid var(--border); }
+  .hm-table td.theme-name { text-align: left; padding-left: 0; font-size: 12px; color: var(--text); line-height: 1.35; }
+  .hm-table tr:last-child td { border-bottom: none; }
+  .cell-0 { background: transparent; }
+  .cell-1 { background: #C6EFFC !important; color: #0C3354 !important; }
+  .cell-2 { background: #A0E0EF !important; color: #0C3354 !important; }
+  .cell-3 { background: #62B6D0 !important; color: #ffffff !important; }
+  .cell-4 { background: #297496 !important; color: #ffffff !important; }
+  .cell-5 { background: #0C3354 !important; color: #ffffff !important; }
+  .q-pill { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 3px; margin-right: 4px; background: var(--bg3); color: var(--text3); }
+  .persona-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: .85rem; background: var(--bg); }
+  .p-header { display: flex; align-items: center; gap: 8px; margin-bottom: .75rem; }
+  .p-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .p-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .p-meta { font-size: 11px; color: var(--text3); margin-left: auto; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 3px; margin-bottom: 5px; }
+  .badge-pain { background: var(--danger-bg); color: var(--danger-text); }
+  .badge-pos { background: var(--success-bg); color: var(--success-text); }
+  .badge-uniq { background: var(--info-bg); color: var(--info-text); }
+  .p-item { font-size: 12px; color: var(--text2); padding: 3px 0 3px 10px; border-left: 2px solid var(--border); margin-bottom: 4px; line-height: 1.45; }
+  .p-item strong { color: var(--text); font-weight: 500; }
+  .cons-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .cons-row:first-of-type { border-top: 0.5px solid var(--border); }
+  .cons-n { font-size: 22px; font-weight: 500; color: var(--text); min-width: 34px; line-height: 1; }
+  .cons-sub { font-size: 10px; color: var(--text3); }
+  .cons-body { flex: 1; }
+  .cons-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .cons-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .conf-high { display: inline-block; background: var(--danger-bg); color: var(--danger-text); font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-top: 4px; }
+  .conf-med { display: inline-block; background: var(--warning-bg); color: var(--warning-text); font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-top: 4px; }
+  .conf-low { display: inline-block; background: var(--bg2); color: var(--text3); font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-top: 4px; }
+  .gap-card { border-left: 2px solid #EF9F27; padding: 8px 10px; margin-bottom: 8px; background: var(--bg2); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .gap-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .gap-body { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+  .rec-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: .85rem; background: var(--bg); }
+  .rec-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: .5rem; }
+  .rec-rank { width: 26px; height: 26px; border-radius: 50%; background: #D41B2C; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #ffffff; flex-shrink: 0; }
+  .rec-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; padding-top: 4px; }
+  .rec-body { font-size: 12px; color: var(--text2); line-height: 1.55; margin-bottom: .5rem; }
+  .rec-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .rec-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: var(--bg2); color: var(--text3); }
+  .rec-tag-red { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #D41B2C; color: #ffffff; font-weight: 500; }
+  .rec-tag-navy { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #0C3354; color: #ffffff; font-weight: 500; }
+  .rec-tag-blue { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #297496; color: #ffffff; font-weight: 500; }
+  .rec-tag-mid { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #62B6D0; color: #0C3354; font-weight: 500; }
+  .legend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: .75rem; font-size: 11px; color: var(--text2); }
+  .leg-item { display: flex; align-items: center; gap: 4px; }
+  .leg-swatch { width: 14px; height: 14px; border-radius: 2px; }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+  .conf-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+  .conf-tbl th { font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 8px; text-align: left; border-bottom: 0.5px solid var(--border2); background: var(--bg2); }
+  .conf-tbl td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.4; }
+  .conf-tbl tr:last-child td { border-bottom: none; }
+  .feedback-bar { margin-top: 2rem; padding: 1rem 1.25rem; background: var(--bg2); border-radius: var(--radius-lg); font-size: 13px; color: var(--text2); }
+  .feedback-bar strong { color: var(--text); font-weight: 500; }
+  .new-badge { display: inline-block; font-size: 9px; font-weight: 500; padding: 1px 5px; border-radius: 3px; background: var(--info-bg); color: var(--info-text); margin-left: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">Infrastructure &amp; Operations in the Age of AI</div>
+    <div class="page-sub">Roux Institute Campus Experience Discovery · May–June 2026 · 22 interviews · 29 people</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text3)">Liv Berg &nbsp;·&nbsp; Annie Chuprevich &nbsp;·&nbsp; Andy Kinley &nbsp;·&nbsp; Emily Morrow &nbsp;·&nbsp; Amanda Perofsky &nbsp;·&nbsp; Jim Ahearne</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">29</div><div class="stat-label">People interviewed</div></div>
+    <div class="stat"><div class="stat-num">22</div><div class="stat-label">Interviews (incl. 2 focus groups)</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Persona groups</div></div>
+  </div>
+  
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview',this)">Overview &amp; heat map</button>
+    <button class="tab" onclick="showTab('personas',this)">Personas</button>
+    <button class="tab" onclick="showTab('consensus',this)">Consensus</button>
+    <button class="tab" onclick="showTab('gaps',this)">Gaps &amp; confidence</button>
+    <button class="tab" onclick="showTab('recs',this)">Recommendations</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="panel active">
+    <div class="sec-title">Theme frequency by persona group</div>
+    <div class="legend">
+      <span class="leg-item"><span class="leg-swatch" style="background:#C6EFFC;border:0.5px solid #A0E0EF"></span>1 mention</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#A0E0EF"></span>2–3</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#62B6D0"></span>4–5</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#297496"></span>6–8</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#0C3354"></span>9+</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:transparent;border:0.5px solid #ccc"></span>Not raised</span>
+    </div>
+    <div class="hm-wrap">
+      <table class="hm-table">
+        <colgroup><col style="width:32%"><col style="width:13%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"></colgroup>
+        <tr>
+          <th class="theme-col">Theme</th>
+          <th>Staff<br><span style="font-weight:400;font-size:10px">9 people</span></th>
+          <th>Research<br><span style="font-weight:400;font-size:10px">8 people</span></th>
+          <th>Students<br><span style="font-weight:400;font-size:10px">7 people</span></th>
+          <th>Incubator<br><span style="font-weight:400;font-size:10px">3 people</span></th>
+          <th>Co-ops<br><span style="font-weight:400;font-size:10px">2 people</span></th>
+          <th>Total</th>
+        </tr>
+        <tr><td class="theme-name"><span class="q-pill">Q1</span>People &amp; community</td><td class="cell-5">8</td><td class="cell-4">7</td><td class="cell-1">1</td><td class="cell-2">3</td><td class="cell-1">1</td><td><strong>20</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q2</span>Private space gap</td><td class="cell-5">8</td><td class="cell-4">7</td><td class="cell-1">1</td><td class="cell-1">2</td><td class="cell-0">—</td><td><strong>18</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q5</span>Systems don't integrate</td><td class="cell-4">7</td><td class="cell-2">3</td><td class="cell-1">1</td><td class="cell-1">1</td><td class="cell-1">1</td><td><strong>13</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q3</span>Onboarding inconsistent</td><td class="cell-4">6</td><td class="cell-2">3</td><td class="cell-1">1</td><td class="cell-0">—</td><td class="cell-1">1</td><td><strong>11</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q3</span>Logistics opaque</td><td class="cell-3">6</td><td class="cell-2">3</td><td class="cell-1">1</td><td class="cell-2">3</td><td class="cell-1">1</td><td><strong>14</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q1</span>Views / physical environment</td><td class="cell-2">4</td><td class="cell-4">7</td><td class="cell-0">—</td><td class="cell-2">3</td><td class="cell-1">1</td><td><strong>15</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q2</span>Staffing capacity gaps</td><td class="cell-5">8</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>8</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q5</span>Claude broadly valued</td><td class="cell-2">4</td><td class="cell-2">3</td><td class="cell-0">—</td><td class="cell-1">2</td><td class="cell-1">1</td><td><strong>10</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q4</span>Edge cases need a person</td><td class="cell-2">5</td><td class="cell-2">3</td><td class="cell-1">1</td><td class="cell-0">—</td><td class="cell-1">1</td><td><strong>10</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q2</span>AV/IT single point of failure</td><td class="cell-3">5</td><td class="cell-3">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>9</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q6</span>No space for sensitive convos</td><td class="cell-3">6</td><td class="cell-2">3</td><td class="cell-1">1</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>10</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q3</span>Knowledge brokers overloaded</td><td class="cell-2">3</td><td class="cell-3">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>7</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q4</span>Front desk = human</td><td class="cell-2">4</td><td class="cell-1">1</td><td class="cell-1">1</td><td class="cell-1">1</td><td class="cell-0">—</td><td><strong>7</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q2</span>Software / subscription gaps</td><td class="cell-0">—</td><td class="cell-2">2</td><td class="cell-0">—</td><td class="cell-1">2</td><td class="cell-1">1</td><td><strong>5</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q3</span>No org chart / unclear structure</td><td class="cell-2">2</td><td class="cell-3">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>6</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q6</span>Accessibility gaps (physical + process)</td><td class="cell-2">3</td><td class="cell-2">3</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>6</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q6</span>No formal accommodations process</td><td class="cell-1">1</td><td class="cell-1">2</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>3</strong></td></tr>
+        <tr><td class="theme-name"><span class="q-pill">Q2</span>Room booking enforcement gap</td><td class="cell-1">1</td><td class="cell-3">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>5</strong></td></tr>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:-1rem">Cell values = number of interview sessions where theme was raised. Focus group sessions count as 1 regardless of group size. Staff n=9 (Liv ×7, Emily #5, Jim). Research n=8 (Amanda ×7, Andy). Includes 2 focus group sessions.</div>
+  </div>
+
+  <!-- PERSONAS -->
+  <div id="personas" class="panel">
+    <p style="font-size:12px;color:var(--text3);margin-bottom:1rem">Click a persona to expand.</p>
+
+    <!-- Staff -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-staff', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#378ADD"></div>
+        <div class="p-title">Staff</div>
+        <div class="p-meta">9 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-staff-icon">▸</div>
+      </div>
+      <div id="p-staff" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>Personnel capacity:</strong> Roles are not being backfilled after departures, leaving everyone doing more with less. There is no redundancy in IT or AV support, and burnout is a consistent theme across this group.</div>
+        <div class="p-item"><strong>HR feels dehumanized:</strong> The shift to ticketing systems for HR removes the human connection people value. Staff want to reach a person they know, not submit a ticket into a queue.</div>
+        <div class="p-item"><strong>Open office and lack of private space:</strong> Glass walls and an open layout make staff feel constantly accessible and interrupted, making focused work difficult. Work-from-home days are often the only opportunity for deep work.</div>
+        <div class="p-item"><strong>System fragmentation:</strong> Teams rely on manual data transfer between disconnected platforms. There is no bandwidth or organizational support to address the integrations needed.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Community and colleagues · Physical environment · Hybrid flexibility · Internal communications that surface accomplishments and events help reduce isolation</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">Envoy underdeployment · Donor data inaccessibility · Burnout as a retention risk · Loss of weekly team meetings · Event Intake Form reliability · Student employee turnover creating inconsistent event support · Social connection gaps (Fikas valued; more informal gatherings needed)</div>
+      </div>
+    </div>
+
+    <!-- Research -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-research', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#1D9E75"></div>
+        <div class="p-title">Research faculty, scientists &amp; postdocs</div>
+        <div class="p-meta">7 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-research-icon">▸</div>
+      </div>
+      <div id="p-research" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>No private offices:</strong> Constant movement between phone booths and meeting rooms throughout the day is impractical and has gotten worse over time. Some researchers spend entire campus days in a pod because the open area does not support writing or focused meetings.</div>
+        <div class="p-item"><strong>Meeting space scarcity and enforcement:</strong> Rooms that appear available in the booking system are often physically occupied with no enforcement mechanism. A/V reliability in classrooms is a related and unresolved issue.</div>
+        <div class="p-item"><strong>Siloed groups and unclear structure:</strong> Research groups rarely mix across divisions. Organizational structure is unclear even for long-tenured staff. Postdocs in particular receive less information than faculty about how to progress and what resources are available to them.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">NU IT infrastructure (HPC, journal access, Claude enterprise, Workday PI dashboard) · Views and natural light · Standing desks · Free coffee</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">HIPAA-compliant HPC gap · PhD pipeline collapse · No journal club or academic seminar infrastructure · No formal accommodations process · Salary/contract tracking opaque · Postdoc-specific onboarding gap · Adjustable/dimmable lighting needed · Wired internet at desks · Desk assignment structure needed · First-floor classroom A/V unreliable · Room numbering and wayfinding confusing · Bike storage needed</div>
+      </div>
+    </div>
+
+    <!-- Students -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-students', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#BA7517"></div>
+        <div class="p-title">Students</div>
+        <div class="p-meta">7 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-students-icon">▸</div>
+      </div>
+      <div id="p-students" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>No dedicated student space:</strong> Students want a space that is theirs — somewhere to be loud, socialize, and study without worrying about disturbing or being disturbed by professional events and meetings.</div>
+        <div class="p-item"><strong>Wellness room access and misuse:</strong> Wellness rooms are frequently unavailable due to misuse. There is not enough semi-private study space, and event noise creates regular disruption.</div>
+        <div class="p-item"><strong>Platform and resource onboarding:</strong> Students wish they had been introduced to key systems — Banner, Canvas, the library, and other campus resources — from day one rather than discovering them over time.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Café and bookable spaces · Human front desk and student ambassador desk as social anchors · Discounted cafeteria food</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">Fitness center and cafeteria as priorities · Wellness specialist on campus · Elevator signage confusion · Dedicated study area · More books and study materials</div>
+      </div>
+    </div>
+
+    <!-- Incubator -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-incubator', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#7F77DD"></div>
+        <div class="p-title">Roux Incubator Members</div>
+        <div class="p-meta">3 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-incubator-icon">▸</div>
+      </div>
+      <div id="p-incubator" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>Practical logistics are completely opaque:</strong> Basic campus information — closure schedules, system access, parking, how to reserve spaces — is not communicated to incubator members. Everything must be figured out independently through other people.</div>
+        <div class="p-item"><strong>Isolation as solo founders and embedded users:</strong> Members come to campus primarily for connection, but the open concept does not always deliver the structured social infrastructure they need. The experience can feel lonely without intentional community-building.</div>
+        <div class="p-item"><strong>Tool and software access gaps:</strong> Members rely heavily on tools outside the NU ecosystem. Sponsored account restrictions block access to platforms that would meaningfully support their work.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Relationship-building and community · Views and physical environment · Energy from constantly changing events and people</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">No Claude access on sponsored accounts · Specific physical amenity requests (scales, showers, nap pods) · No NU system onboarding for embedded/non-staff users</div>
+      </div>
+    </div>
+
+    <!-- Co-ops -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-coops', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#D85A30"></div>
+        <div class="p-title">Co-ops</div>
+        <div class="p-meta">2 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-coops-icon">▸</div>
+      </div>
+      <div id="p-coops" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>Software and tool access:</strong> Key design platforms are not provided through NU, requiring significant self-learning with no mentorship or guidance on tooling.</div>
+        <div class="p-item"><strong>No peer collaborator:</strong> Design work feels isolated. Having a colleague to ideate and problem-solve with is a clear unmet need.</div>
+        <div class="p-item"><strong>No structured introduction to systems:</strong> Nothing is explained at the start of the placement. Co-ops must self-discover tools, processes, and resources over time.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Open layout and visibility of collaboration across teams · Downtown location and walkability</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">Design equipment gaps (graphic printers, compositing tools) · Experience changes with every cohort rotation</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONSENSUS -->
+  <div id="consensus" class="panel">
+    <div class="sec-title">Findings raised across persona groups</div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#ffffff;min-width:34px">5/5</div>
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Raised by every persona group</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>People and community are the primary draw to campus — present in every single interview across all groups</li>
+        <li>Systems don't talk to each other — manual data transfer is the norm across every team and role</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#297496;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#ffffff;min-width:34px">4/5</div>
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Raised by 4 persona groups</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Insufficient private and enclosed space — named in nearly every session and the most frequently cited infrastructure gap</li>
+        <li>Practical logistics are opaque — all groups default to asking a person rather than finding documentation</li>
+        <li>Onboarding is inconsistent and team-dependent — incubator members receive no onboarding at all</li>
+        <li>Edge cases and nuanced situations require a human — systems cannot handle context, urgency, or ambiguity</li>
+        <li>Claude is broadly valued as a work tool — named positively by staff, research, incubator, and co-op groups</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#62B6D0;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#0C3354;min-width:34px">3/5</div>
+        <div style="font-size:13px;font-weight:500;color:#0C3354">Raised by 3 persona groups</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>The front desk must remain human — automating it would undermine the sense of welcome and belonging on campus</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#C6EFFC;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#0C3354;min-width:34px">2/5</div>
+        <div style="font-size:13px;font-weight:500;color:#0C3354">Raised by 2 persona groups</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Informal knowledge brokers are overloaded — specific individuals are absorbing disproportionate institutional load that should be distributed or documented</li>
+        <li>AV/IT is a single point of failure — one person covering all technical support creates unacceptable operational risk</li>
+        <li>Room booking enforcement is needed — rooms appear available but are physically occupied with no mechanism to address this</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- GAPS -->
+  <div id="gaps" class="panel">
+
+    <div class="divider"></div>
+    <div class="sec-title">Questions with thin data</div>
+    <div class="gap-card">
+      <div class="gap-title">Q6 — Accessibility</div>
+      <div class="gap-body">Even with the full corpus, most respondents gave vague answers or said they were unsure. The most concrete data point is a documented case of a prospective student with accessibility needs who did not come to Roux after receiving only a boilerplate response. Physical accessibility issues — including inaccessible door hardware and a need for dimmable lighting — were raised but not systematically explored. This question likely needs to be reframed in future rounds to surface more specific experiences.</div>
+    </div>
+    <div class="gap-card">
+      <div class="gap-title">Q4 — Human vs. system</div>
+      <div class="gap-body">Incubator and co-op respondents gave minimal responses to this question. It may have landed differently with non-staff groups who interact with campus systems less frequently.</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="sec-title">Confidence by finding</div>
+    <div class="hm-wrap">
+      <table class="conf-tbl">
+        <colgroup><col style="width:46%"><col style="width:14%"><col style="width:10%"><col style="width:30%"></colgroup>
+        <tr><th>Finding</th><th>Confidence</th><th>Personas</th><th>Basis</th></tr>
+        <tr><td>People and community are the primary draw</td><td><span class="conf-high">High</span></td><td>5/5</td><td>Present in every interview across all groups</td></tr>
+        <tr><td>Systems don't integrate — manual transfer is the norm</td><td><span class="conf-high">High</span></td><td>5/5</td><td>Named across all groups with specific examples</td></tr>
+        <tr><td>Private space is the #1 physical gap</td><td><span class="conf-high">High</span></td><td>4/5</td><td>Named in nearly every session; most frequent infrastructure issue in the corpus</td></tr>
+        <tr><td>Onboarding is inconsistent and team-dependent</td><td><span class="conf-high">High</span></td><td>4/5</td><td>Consistent pattern across very different roles and groups</td></tr>
+        <tr><td>Practical logistics are opaque</td><td><span class="conf-high">High</span></td><td>4/5</td><td>Same pattern reported by new and experienced campus users alike</td></tr>
+        <tr><td>Front desk must remain human</td><td><span class="conf-high">High</span></td><td>3/5</td><td>Strong, unprompted language across multiple groups</td></tr>
+        <tr><td>Staff capacity is at a breaking point</td><td><span class="conf-high">High</span></td><td>1/5</td><td>Unanimous across all staff interviews; emotionally intense and consistent</td></tr>
+        <tr><td>Research faculty have no private offices</td><td><span class="conf-high">High</span></td><td>1/5</td><td>Unanimous across all research interviews including postdocs</td></tr>
+        <tr><td>AV/IT is a single point of failure</td><td><span class="conf-high">High</span></td><td>2/5</td><td>Named as an operational risk by both staff and research groups</td></tr>
+        <tr><td>Claude is broadly valued as a work tool</td><td><span class="conf-high">High</span></td><td>4/5</td><td>Named positively across staff, research, incubator, and co-op groups; students not directly asked</td></tr>
+        <tr><td>Informal knowledge brokers are overloaded</td><td><span class="conf-high">High</span></td><td>2/5</td><td>Named independently by staff and research; specific individuals absorbing excess institutional load</td></tr>
+        <tr><td>Room booking enforcement is needed</td><td><span class="conf-high">High</span></td><td>2/5</td><td>Rooms appear available but are physically occupied; no mechanism to address this currently exists</td></tr>
+        <tr><td>No formal accommodations process exists</td><td><span class="conf-med">Medium</span></td><td>2/5</td><td>One concrete documented case; physical door accessibility raised separately by another respondent</td></tr>
+        <tr><td>HIPAA-compliant HPC is a critical gap</td><td><span class="conf-med">Medium</span></td><td>1/5</td><td>Named as a major unmet need by one researcher; not corroborated by others but highly specific</td></tr>
+        <tr><td>PhD student pipeline has collapsed</td><td><span class="conf-med">Medium</span></td><td>1/5</td><td>Raised with strong language by one faculty member; corroborated thematically by another</td></tr>
+        <tr><td>Postdoc-specific onboarding gap</td><td><span class="conf-med">Medium</span></td><td>1/5</td><td>Postdocs receive less information than faculty about progression and available resources</td></tr>
+        <tr><td>Adjustable lighting is needed</td><td><span class="conf-med">Medium</span></td><td>1/5</td><td>Raised by one researcher as a sensory and accessibility need; relevant for new building design</td></tr>
+        <tr><td>Sponsored account tool access gap</td><td><span class="conf-med">Medium</span></td><td>1/5</td><td>Named directly by one incubator member; likely affects other embedded users in a similar position</td></tr>
+        <tr><td>Co-op software access gaps</td><td><span class="conf-low">Low</span></td><td>1/5</td><td>Raised by two individuals in a single session; needs validation across cohorts</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div id="recs" class="panel">
+    <div class="note-bar">Prioritized recommendations for leadership consideration. Ranked by confidence, severity, and cross-persona reach.</div>
+
+    <div style="margin: 1.5rem 0 .75rem; font-size: 15px; font-weight: 500; color: #0C3354; padding: 8px 12px; background: #C6EFFC; border-radius: 8px;">🔴 Urgent &amp; Immediate Action</div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">1</div><div class="rec-title">Address Personnel Capacity Now</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Backfill open roles in campus operations and events before taking on increased building capacity</li>
+        <li>Create a second AV/IT support position to eliminate the current single point of failure</li>
+        <li>Establish a formal flex-time policy for staff who cover evening and weekend events</li>
+        <li>Acknowledge and address burnout before it results in further departures</li>
+        <li>Reinstate regular all-staff touchpoints to rebuild cross-team communication and community</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-red">Urgent</span><span class="rec-tag">Staff</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">2</div><div class="rec-title">Build a centralized onboarding experience for all campus users</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Create a standard onboarding process that applies to staff, researchers, incubator members, and co-ops</li>
+        <li>Include an org chart with team descriptions, goals, faces, and titles</li>
+        <li>Cover practical logistics: system access, parking, guest WiFi, campus closure schedule, who handles what</li>
+        <li>Implement a buddy program or structured welcome meetings modeled on the Boston campus approach</li>
+        <li>Develop a separate onboarding track for postdocs that addresses progression expectations and available resources</li>
+        <li>Create a version for incubator members who are not NU-affiliated but need access to campus systems</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-red">Immediate action</span><span class="rec-tag">4/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">3</div><div class="rec-title">Integrate Systems to Eliminate Manual Work</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Facilitate a working session to map all systems and identify the highest-value integration opportunities</li>
+        <li>Prioritize: Salesforce/Mailchimp, Tripleseat/Robin, NUWorks/Salesforce, newsletter/Mailchimp, SharePoint/Google Drive</li>
+        <li>Assign ownership and capacity to act on integration improvements — this cannot be done by teams already at capacity</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-mid">Systems</span><span class="rec-tag">5/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">4</div><div class="rec-title">Create a Central Knowledge Base</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Build a single, maintained hub covering logistics, policies, and who handles what</li>
+        <li>Include a staff directory with roles, teams, and points of contact — especially important given recent turnover</li>
+        <li>Actively communicate where to find things; building it is not enough if people don't know it exists</li>
+        <li>Keep it current — fragmented and outdated documentation is worse than none</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-red">Immediate action</span><span class="rec-tag">4/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">5</div><div class="rec-title">Enforce Room Booking and Space Use Policies</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Require check-in on room touchpads and automatically release rooms that are not checked in</li>
+        <li>Publish and enforce clear policies on appropriate use of phone booths, meeting rooms, and wellness rooms</li>
+        <li>Designate a clear point of contact when spaces are used inappropriately</li>
+        <li>Address wellness room misuse specifically — napping is locking out people who need the space for pumping</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-blue">Quick win</span><span class="rec-tag">Research + staff</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">6</div><div class="rec-title">Deploy Envoy for Guest Management</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Write and distribute a clear SOP for all staff on how to use Envoy correctly</li>
+        <li>Ensure guest notifications go to the right people, not just one point of contact</li>
+        <li>Use Envoy's existing features for parking validation and guest check-in before investing in other solutions</li>
+        <li>Complete full rollout before the new building opens</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-blue">Quick win</span><span class="rec-tag">Staff</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">7</div><div class="rec-title">Expand Tool Access for All Campus Users</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Review sponsored account restrictions that currently block access to Claude and other productivity tools</li>
+        <li>Consider a co-op tool access package that includes Claude, Canva Pro, and Figma</li>
+        <li>Explore whether incubator members can be brought into NU tool subscriptions without full NU affiliation</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag">Tools access</span><span class="rec-tag">Incubator + co-ops</span><span class="conf-med" style="margin-top:0">Medium confidence</span></div>
+    </div>
+
+    <div style="margin: 1.5rem 0 .75rem; font-size: 15px; font-weight: 500; color: #0C3354; padding: 8px 12px; background: #C6EFFC; border-radius: 8px;; margin-top: 2rem;">🔵 Future &amp; New Building Considerations</div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">1</div><div class="rec-title">New Building Needs a Spectrum of Spaces</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Provide individual offices or bookable focus rooms for faculty and staff with heavy meeting loads</li>
+        <li>Include fully soundproof rooms for HR conversations, student crisis support, and sensitive discussions</li>
+        <li>Offer a range of phone booth sizes, including options for 2–3 people</li>
+        <li>Create a dedicated student zone that does not compete with professional event or work space</li>
+        <li>Include rooms with adjustable and dimmable lighting to support sensory and accessibility needs</li>
+        <li>Ensure all meeting room and bathroom doors have accessible hardware — no sliding doors</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-navy">New building</span><span class="rec-tag">4/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">2</div><div class="rec-title">Establish a Formal Accommodations Process</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Designate a named point of contact for accommodation requests — make this publicly known</li>
+        <li>Document a process that mirrors the established Boston campus approach</li>
+        <li>Communicate proactively to prospective students, visitors, and new hires before they need to ask</li>
+        <li>Ensure accessible door hardware, dimmable lighting, and other physical features are built into the new building spec</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-navy">New building</span><span class="rec-tag">Research + staff</span><span class="conf-med" style="margin-top:0">Medium confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">3</div><div class="rec-title">Build Academic Infrastructure for PhD Students</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Establish a journal club, academic seminar series, and structured student community before the new building opens</li>
+        <li>Focus on building critical mass in one or two areas rather than trying to replicate the Boston model</li>
+        <li>Acknowledge that people coming to Maine have different community needs — design intentionally for that</li>
+        <li>Create a postdoc group with formal structure to ensure postdocs are getting what they need to progress</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-navy">New building</span><span class="rec-tag">Research</span><span class="conf-med" style="margin-top:0">Medium confidence</span></div>
+    </div>
+
+  </div>
+
+    <div class="feedback-bar">
+    <strong>Complete corpus</strong> — This dashboard reflects all 20 interviews collected May 5 – June 4, 2026. For questions or corrections contact the research team.
+  </div>
+</div>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+function togglePersona(id, card) {
+  const body = document.getElementById(id);
+  const icon = document.getElementById(id + '-icon');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  icon.textContent = isOpen ? '▸' : '▾';
+  card.style.background = isOpen ? 'var(--bg)' : 'var(--bg2)';
+}
+</script>
+</body>
+</html>
