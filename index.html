@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infrastructure &amp; Operations in the Age of AI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeedea;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #9c9a92;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --danger-bg: #FCEBEB; --danger-text: #A32D2D;
+    --warning-bg: #FAEEDA; --warning-text: #854F0B;
+    --success-bg: #EAF3DE; --success-text: #27500A;
+    --info-bg: #E6F1FB; --info-text: #0C447C;
+    --radius-md: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #242422; --bg3: #2c2c2a;
+      --text: #e8e6de; --text2: #a8a69e; --text3: #6e6c66;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+      --danger-bg: #3d1515; --danger-text: #f09595;
+      --warning-bg: #3d2a0a; --warning-text: #FAC775;
+      --success-bg: #1a2e0a; --success-text: #C0DD97;
+      --info-bg: #0a1e3d; --info-text: #85B7EB;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; overflow-x: hidden; }
+  .page { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+  .page-header { margin-bottom: 1.5rem; }
+  .page-title { font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .stat { background: #0C3354; border-radius: var(--radius-md); padding: .9rem 1rem; }
+  .stat-num { font-size: 26px; font-weight: 500; color: #ffffff; line-height: 1.1; }
+  .stat-label { font-size: 12px; color: #C6EFFC; margin-top: 3px; }
+  .note-bar { font-size: 12px; color: var(--text3); background: var(--bg2); padding: 8px 12px; border-radius: var(--radius-md); margin-bottom: 1.5rem; line-height: 1.5; }
+  .tabs { display: flex; gap: 2px; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab { padding: 8px 14px; font-size: 13px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; white-space: nowrap; font-family: inherit; }
+  .tab.active { color: #0C3354; border-bottom: 2px solid #297496; font-weight: 500; background: #C6EFFC; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+  .tab:hover:not(.active) { color: var(--text); }
+  .panel { display: none; } .panel.active { display: block; max-width: 100%; overflow-x: hidden; }
+  .panel * { box-sizing: border-box; min-width: 0; }
+  .sec-title { font-size: 15px; font-weight: 500; color: var(--text); margin: 1.5rem 0 .75rem; }
+  .sec-title:first-child { margin-top: 0; }
+  .hm-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+  .hm-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .hm-table th { font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 4px; text-align: center; border-bottom: 0.5px solid var(--border2); background: var(--bg2); }
+  .hm-table th.theme-col { text-align: left; padding-left: 0; width: 32%; }
+  .hm-table td { padding: 5px 4px; text-align: center; font-size: 12px; color: var(--text2); border-bottom: 0.5px solid var(--border); }
+  .hm-table td.theme-name { text-align: left; padding-left: 0; font-size: 12px; color: var(--text); line-height: 1.35; }
+  .hm-table tr:last-child td { border-bottom: none; }
+  .cell-0 { background: transparent; }
+  .cell-1 { background: #C6EFFC !important; color: #0C3354 !important; }
+  .cell-2 { background: #A0E0EF !important; color: #0C3354 !important; }
+  .cell-3 { background: #62B6D0 !important; color: #ffffff !important; }
+  .cell-4 { background: #297496 !important; color: #ffffff !important; }
+  .cell-5 { background: #1a5270 !important; color: #ffffff !important; }
+  .cell-6 { background: #0C3354 !important; color: #ffffff !important; }
+  .cell-7 { background: #8B1A1A !important; color: #ffffff !important; }
+  .cell-8 { background: #D41B2C !important; color: #ffffff !important; }
+  .cell-9 { background: #FF3B3B !important; color: #ffffff !important; }
+  .q-pill { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 3px; margin-right: 4px; background: var(--bg3); color: var(--text3); }
+  .persona-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: .85rem; background: var(--bg); }
+  .p-header { display: flex; align-items: center; gap: 8px; margin-bottom: .75rem; }
+  .p-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .p-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .p-meta { font-size: 11px; color: var(--text3); margin-left: auto; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 3px; margin-bottom: 5px; }
+  .badge-pain { background: var(--danger-bg); color: var(--danger-text); }
+  .badge-pos { background: var(--success-bg); color: var(--success-text); }
+  .badge-uniq { background: var(--info-bg); color: var(--info-text); }
+  .p-item { font-size: 12px; color: var(--text2); padding: 3px 0 3px 10px; border-left: 2px solid var(--border); margin-bottom: 4px; line-height: 1.45; }
+  .p-item strong { color: var(--text); font-weight: 500; }
+  .cons-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .cons-row:first-of-type { border-top: 0.5px solid var(--border); }
+  .cons-n { font-size: 22px; font-weight: 500; color: var(--text); min-width: 34px; line-height: 1; }
+  .cons-sub { font-size: 10px; color: var(--text3); }
+  .cons-body { flex: 1; }
+  .cons-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .cons-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .conf-high { display: inline-block; background: var(--danger-bg); color: var(--danger-text); font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-top: 4px; }
+  .conf-med { display: inline-block; background: var(--warning-bg); color: var(--warning-text); font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-top: 4px; }
+  .conf-low { display: inline-block; background: var(--bg2); color: var(--text3); font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-top: 4px; }
+  .gap-card { border-left: 2px solid #EF9F27; padding: 8px 10px; margin-bottom: 8px; background: var(--bg2); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .gap-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .gap-body { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+  .rec-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: .85rem; background: var(--bg); max-width: 100%; box-sizing: border-box; }
+  .rec-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: .5rem; }
+  .rec-rank { width: 26px; height: 26px; border-radius: 50%; background: #D41B2C; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #ffffff; flex-shrink: 0; }
+  .rec-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; padding-top: 4px; }
+  .rec-body { font-size: 12px; color: var(--text2); line-height: 1.55; margin-bottom: .5rem; }
+  .rec-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .rec-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: var(--bg2); color: var(--text3); }
+  .rec-tag-red { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #D41B2C; color: #ffffff; font-weight: 500; }
+  .rec-tag-navy { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #0C3354; color: #ffffff; font-weight: 500; }
+  .rec-tag-blue { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #297496; color: #ffffff; font-weight: 500; }
+  .rec-tag-mid { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #62B6D0; color: #0C3354; font-weight: 500; }
+  .legend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: .75rem; font-size: 11px; color: var(--text2); }
+  .leg-item { display: flex; align-items: center; gap: 4px; }
+  .leg-swatch { width: 14px; height: 14px; border-radius: 2px; }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+  .conf-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+  .conf-tbl th { font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 8px; text-align: left; border-bottom: 0.5px solid var(--border2); background: var(--bg2); }
+  .conf-tbl td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.4; }
+  .conf-tbl tr:last-child td { border-bottom: none; }
+  .feedback-bar { margin-top: 2rem; padding: 1rem 1.25rem; background: var(--bg2); border-radius: var(--radius-lg); font-size: 13px; color: var(--text2); }
+  .feedback-bar strong { color: var(--text); font-weight: 500; }
+  .new-badge { display: inline-block; font-size: 9px; font-weight: 500; padding: 1px 5px; border-radius: 3px; background: var(--info-bg); color: var(--info-text); margin-left: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">Infrastructure &amp; Operations in the Age of AI</div>
+    <div class="page-sub">Roux Institute Campus Experience Discovery · May–June 2026 · 26 interviews · 5 focus groups · ~68 people</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text3)">Liv Berg &nbsp;·&nbsp; Annie Chuprevich &nbsp;·&nbsp; Andy Kinley &nbsp;·&nbsp; Emily Morrow &nbsp;·&nbsp; Amanda Perofsky &nbsp;·&nbsp; Jim Ahearne</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">~68</div><div class="stat-label">People engaged</div></div>
+    <div class="stat"><div class="stat-num">26</div><div class="stat-label">Interviews</div></div>
+    <div class="stat" style="cursor:pointer;position:relative" onclick="this.querySelector('.fg-detail').style.display=this.querySelector('.fg-detail').style.display==='none'?'block':'none'">
+    <div class="stat-num">5</div>
+    <div class="stat-label">Focus groups <span style="font-size:10px;opacity:0.7">▾</span></div>
+    <div class="fg-detail" style="display:none;position:absolute;top:100%;left:0;right:0;background:#0C3354;border:0.5px solid #297496;border-radius:0 0 8px 8px;padding:8px 10px;z-index:10;font-size:11px;color:#C6EFFC;line-height:1.8;">
+      <div>Staff ×3 sessions · ~30 people</div>
+      <div>Students · ~7 people</div>
+      <div>Co-ops ×2 sessions · ~6 people</div>
+    </div>
+  </div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Persona groups</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview',this)">Overview &amp; heat map</button>
+    <button class="tab" onclick="showTab('personas',this)">Personas</button>
+    <button class="tab" onclick="showTab('consensus',this)">Consensus</button>
+    <button class="tab" onclick="showTab('gaps',this)">Gaps</button>
+    <button class="tab" onclick="showTab('confidence',this)">Key Findings</button>
+    <button class="tab" onclick="showTab('recs',this)">Recommendations</button>
+    <button class="tab" onclick="showTab('vision',this)">All-Hands Break Out</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="panel active">
+    <div class="sec-title">Theme frequency by persona group</div>
+    <div class="legend">
+      <span class="leg-item"><span class="leg-swatch" style="background:#C6EFFC;border:0.5px solid #A0E0EF"></span>1–5</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#A0E0EF"></span>6–10</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#62B6D0"></span>11–15</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#297496"></span>16–20</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#1a5270"></span>21–25</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#0C3354"></span>26–30</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#8B1A1A"></span>31–35</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#D41B2C"></span>36–40</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:#FF3B3B"></span>41+</span>
+      <span class="leg-item"><span class="leg-swatch" style="background:transparent;border:0.5px solid #ccc"></span>Not raised</span>
+    </div>
+    <div class="hm-wrap">
+      <table class="hm-table">
+        <colgroup><col style="width:32%"><col style="width:13%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"></colgroup>
+        <tr>
+          <th class="theme-col">Theme</th>
+          <th>Staff<br><span style="font-weight:400;font-size:10px">~44 people</span></th>
+          <th>Research &amp; Teaching<br><span style="font-weight:400;font-size:10px">8 people</span></th>
+          <th>Students<br><span style="font-weight:400;font-size:10px">7 people</span></th>
+          <th>Incubator<br><span style="font-weight:400;font-size:10px">3 people</span></th>
+          <th>Co-ops<br><span style="font-weight:400;font-size:10px">~6 people</span></th>
+          <th>Total</th>
+        </tr>
+        <tr><td class="theme-name"><span class="q-pill">Q1</span>People &amp; community</td><td class="cell-9">42</td><td class="cell-2">7</td><td class="cell-1">1</td><td class="cell-1">3</td><td class="cell-1">2</td><td><strong>55</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q2</span>Private space gap</td><td class="cell-8">40</td><td class="cell-2">7</td><td class="cell-1">1</td><td class="cell-1">2</td><td class="cell-1">1</td><td><strong>51</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q3</span>Logistics opaque</td><td class="cell-8">39</td><td class="cell-1">3</td><td class="cell-1">1</td><td class="cell-1">3</td><td class="cell-1">2</td><td><strong>48</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q5</span>Systems don't integrate</td><td class="cell-8">40</td><td class="cell-1">3</td><td class="cell-1">1</td><td class="cell-1">1</td><td class="cell-1">2</td><td><strong>47</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q2</span>Staffing capacity gaps</td><td class="cell-9">44</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>44</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q3</span>Onboarding inconsistent</td><td class="cell-8">38</td><td class="cell-1">3</td><td class="cell-1">1</td><td class="cell-0">—</td><td class="cell-1">2</td><td><strong>44</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q4</span>Edge cases need a person</td><td class="cell-8">38</td><td class="cell-1">3</td><td class="cell-1">1</td><td class="cell-0">—</td><td class="cell-1">2</td><td><strong>44</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q6</span>No space for sensitive convos</td><td class="cell-8">39</td><td class="cell-1">3</td><td class="cell-1">1</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>43</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q6</span>Accessibility gaps (physical + process)</td><td class="cell-8">36</td><td class="cell-1">3</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-1">1</td><td><strong>40</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q3</span>Knowledge brokers overloaded</td><td class="cell-7">35</td><td class="cell-1">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>39</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q3</span>No org chart / unclear structure</td><td class="cell-7">33</td><td class="cell-1">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-1">1</td><td><strong>38</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q2</span>AV/IT single point of failure</td><td class="cell-7">34</td><td class="cell-1">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>38</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q4</span>Front desk = human</td><td class="cell-7">33</td><td class="cell-1">1</td><td class="cell-1">1</td><td class="cell-1">1</td><td class="cell-0">—</td><td><strong>36</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q2</span>Room booking enforcement gap</td><td class="cell-7">31</td><td class="cell-1">4</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>35</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q6</span>Parking equity gap</td><td class="cell-6">30</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-1">1</td><td><strong>31</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q4</span>Emergency response protocols gap</td><td class="cell-6">30</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>30</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q1</span>Views / physical environment</td><td class="cell-1">5</td><td class="cell-2">7</td><td class="cell-0">—</td><td class="cell-1">3</td><td class="cell-1">2</td><td><strong>17</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q5</span>Claude broadly valued</td><td class="cell-1">5</td><td class="cell-1">3</td><td class="cell-0">—</td><td class="cell-1">2</td><td class="cell-1">2</td><td><strong>12</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q2</span>Software / subscription gaps</td><td class="cell-0">—</td><td class="cell-1">2</td><td class="cell-0">—</td><td class="cell-1">2</td><td class="cell-1">2</td><td><strong>6</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q6</span>No formal accommodations process</td><td class="cell-1">2</td><td class="cell-1">2</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-1">1</td><td><strong>5</strong></td></tr>
+<tr><td class="theme-name"><span class="q-pill">Q5</span>CRM / Salesforce limitations</td><td class="cell-1">3</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td class="cell-0">—</td><td><strong>3</strong></td></tr>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:-1rem">Cell values = number of interview sessions where theme was raised. Focus group sessions count as 1 regardless of group size. Staff cell values = individual interview count + ~30 focus group participants where theme was confirmed. Research, Students, Incubator, Co-ops = individual interview sessions only. Research: Amanda ×7, Andy ×1. Students: Annie focus group ×1 (~7 people). Incubator: Emily ×3. Co-ops: Emily ×2 focus group sessions (~6 people total).</div>
+  </div>
+
+  <!-- PERSONAS -->
+  <div id="personas" class="panel">
+    <p style="font-size:12px;color:var(--text3);margin-bottom:1rem">Click a persona to expand.</p>
+
+    <!-- Staff -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-staff', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#378ADD"></div>
+        <div class="p-title">Staff</div>
+        <div class="p-meta">~44 people · 14 interviews + 3 focus groups (~30 participants)</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-staff-icon">▸</div>
+      </div>
+      <div id="p-staff" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>Personnel capacity:</strong> Roles are not being backfilled after departures, leaving everyone doing more with less. There is no redundancy in IT or AV support, and burnout is a consistent theme across this group.</div>
+        <div class="p-item"><strong>HR feels dehumanized:</strong> The shift to ticketing systems for HR removes the human connection people value. Staff want to reach a person they know, not submit a ticket into a queue.</div>
+        <div class="p-item"><strong>Open office and lack of private space:</strong> Glass walls and an open layout make staff feel constantly accessible and interrupted, making focused work difficult. Work-from-home days are often the only opportunity for deep work.</div>
+        <div class="p-item"><strong>System fragmentation:</strong> Teams rely on manual data transfer between disconnected platforms. There is no bandwidth or organizational support to address the integrations needed.</div>
+        <div class="p-item"><strong>Unclear processes and definitions:</strong> Staff struggle to find information about event definitions, fee structures, benefits, and who handles what — especially for Boston-based policies. People default to asking colleagues rather than finding documentation.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Community and colleagues · Physical environment · Hybrid flexibility · Internal communications that surface accomplishments and events help reduce isolation</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">Envoy underdeployment · Donor data inaccessibility · Burnout as a retention risk · Loss of weekly team meetings · Event Intake Form reliability · Student employee turnover creating inconsistent event support · Social connection gaps (Fikas valued; more informal gatherings needed) · CRM/Salesforce limitations for tracking students and programs · Admissions presence gap at entrance — no dedicated person for walk-in visitors · Event definitions unclear (internal vs. external, fees vs. in-kind) · Secure storage gap for sensitive documents · Accessibility gaps: braille signage, wheelchair-friendly setups, phone booth access</div>
+      </div>
+    </div>
+
+    <!-- Research -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-research', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#1D9E75"></div>
+        <div class="p-title">Research &amp; Teaching faculty, scientists &amp; postdocs</div>
+        <div class="p-meta">8 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-research-icon">▸</div>
+      </div>
+      <div id="p-research" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>No private offices:</strong> Constant movement between phone booths and meeting rooms throughout the day is impractical and has gotten worse over time. Some researchers spend entire campus days in a pod because the open area does not support writing or focused meetings.</div>
+        <div class="p-item"><strong>Meeting space scarcity and enforcement:</strong> Rooms that appear available in the booking system are often physically occupied with no enforcement mechanism. A/V reliability in classrooms is a related and unresolved issue.</div>
+        <div class="p-item"><strong>Siloed groups and unclear structure:</strong> Research groups rarely mix across divisions. Organizational structure is unclear even for long-tenured staff. Postdocs in particular receive less information than faculty about how to progress and what resources are available to them.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">NU IT infrastructure (HPC, journal access, Claude enterprise, Workday PI dashboard) · Views and natural light · Standing desks · Free coffee</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">HIPAA-compliant HPC gap · PhD pipeline collapse · No journal club or academic seminar infrastructure · No formal accommodations process · Salary/contract tracking opaque · Postdoc-specific onboarding gap · Adjustable/dimmable lighting needed · Wired internet at desks · Desk assignment structure needed · First-floor classroom A/V unreliable · Room numbering and wayfinding confusing · Bike storage needed</div>
+      </div>
+    </div>
+
+    <!-- Students -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-students', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#BA7517"></div>
+        <div class="p-title">Students</div>
+        <div class="p-meta">7 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-students-icon">▸</div>
+      </div>
+      <div id="p-students" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>No dedicated student space:</strong> Students want a space that is theirs — somewhere to be loud, socialize, and study without worrying about disturbing or being disturbed by professional events and meetings.</div>
+        <div class="p-item"><strong>Wellness room access and misuse:</strong> Wellness rooms are frequently unavailable due to misuse. There is not enough semi-private study space, and event noise creates regular disruption.</div>
+        <div class="p-item"><strong>Platform and resource onboarding:</strong> Students wish they had been introduced to key systems — Banner, Canvas, the library, and other campus resources — from day one rather than discovering them over time.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Café and bookable spaces · Human front desk and student ambassador desk as social anchors · Discounted cafeteria food</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">Fitness center and cafeteria as priorities · Wellness specialist on campus · Elevator signage confusion · Dedicated study area · More books and study materials</div>
+      </div>
+    </div>
+
+    <!-- Incubator -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-incubator', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#7F77DD"></div>
+        <div class="p-title">Roux Incubator Members</div>
+        <div class="p-meta">3 people</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-incubator-icon">▸</div>
+      </div>
+      <div id="p-incubator" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>Practical logistics are completely opaque:</strong> Basic campus information — closure schedules, system access, parking, how to reserve spaces — is not communicated to incubator members. Everything must be figured out independently through other people.</div>
+        <div class="p-item"><strong>Isolation as solo founders and embedded users:</strong> Members come to campus primarily for connection, but the open concept does not always deliver the structured social infrastructure they need. The experience can feel lonely without intentional community-building.</div>
+        <div class="p-item"><strong>Tool and software access gaps:</strong> Members rely heavily on tools outside the NU ecosystem. Sponsored account restrictions block access to platforms that would meaningfully support their work.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Relationship-building and community · Views and physical environment · Energy from constantly changing events and people</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">No Claude access on sponsored accounts · Specific physical amenity requests (scales, showers, nap pods) · No NU system onboarding for embedded/non-staff users</div>
+      </div>
+    </div>
+
+    <!-- Co-ops -->
+    <div class="persona-card" style="cursor:pointer" onclick="togglePersona('p-coops', this)">
+      <div class="p-header" style="margin-bottom:0">
+        <div class="p-dot" style="background:#D85A30"></div>
+        <div class="p-title">Co-ops</div>
+        <div class="p-meta">~6 people · 2 focus groups</div>
+        <div style="margin-left:8px;font-size:12px;color:var(--text3)" id="p-coops-icon">▸</div>
+      </div>
+      <div id="p-coops" style="display:none;margin-top:.75rem">
+        <div class="badge badge-pain">Top pain points</div>
+        <div class="p-item"><strong>Software and tool access:</strong> Key design platforms are not provided through NU, requiring significant self-learning with no mentorship or guidance on tooling.</div>
+        <div class="p-item"><strong>No structured introduction to systems or norms:</strong> Co-ops don't know about the espresso machine, wellness rooms, HDMI cords, printing setup, or how formal communications should be. Expectations around Teams vs. email are never explained.</div>
+        <div class="p-item"><strong>Physical environment gaps:</strong> Lighting causes migraines and is not adjustable. Temperature is too cold. Seating (sofas) is designed for aesthetics, not function. These issues actively push co-ops toward working from home.</div>
+        <div style="margin-top:8px" class="badge badge-pos">Top positives</div>
+        <div class="p-item">Open layout and visibility of collaboration · Non-hierarchical culture — can book meetings with anyone · Events beyond the scope of the internship · Collaborative environment where new ideas are encouraged · Coffee, library, dishware, phone booths, wellness rooms valued</div>
+        <div style="margin-top:8px" class="badge badge-uniq">Unique to this group</div>
+        <div class="p-item">Design equipment gaps (graphic printers, compositing tools) · Experience changes with every cohort rotation · Google Suite vs. SharePoint duplication — two places for the same documents that don't talk to each other · No automation for volunteer request tracking · Hard to find Roux branding assets and program-specific images · Parking validation has no physical person to speak to · Accessible doors only at front entrance</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONSENSUS -->
+  <div id="consensus" class="panel">
+    <div class="sec-title">Findings raised across persona groups</div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#ffffff;min-width:34px">5/5</div>
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Raised by every persona group</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>People and community are the primary draw to campus — present in every single interview across all groups</li>
+        <li>Systems don't talk to each other — manual data transfer is the norm across every team and role</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#297496;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#ffffff;min-width:34px">4/5</div>
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Raised by 4 persona groups</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Insufficient private and enclosed space — named in nearly every session and the most frequently cited infrastructure gap</li>
+        <li>Practical logistics are opaque — all groups default to asking a person rather than finding documentation</li>
+        <li>Onboarding is inconsistent and team-dependent — incubator members receive no onboarding at all</li>
+        <li>Edge cases and nuanced situations require a human — systems cannot handle context, urgency, or ambiguity</li>
+        <li>Claude is broadly valued as a work tool — named positively by staff, research, incubator, and co-op groups</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#62B6D0;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#0C3354;min-width:34px">4/5</div>
+        <div style="font-size:13px;font-weight:500;color:#0C3354">Raised by 4 persona groups</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>The front desk must remain human — automating it would undermine the sense of welcome and belonging on campus</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#C6EFFC;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:22px;font-weight:500;color:#0C3354;min-width:34px">2/5</div>
+        <div style="font-size:13px;font-weight:500;color:#0C3354">Raised by 2 persona groups</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Informal knowledge brokers are overloaded — specific individuals are absorbing disproportionate institutional load that should be distributed or documented</li>
+        <li>AV/IT is a single point of failure — one person covering all technical support creates unacceptable operational risk</li>
+        <li>Room booking enforcement is needed — rooms appear available but are physically occupied with no mechanism to address this</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- GAPS -->
+  <div id="gaps" class="panel">
+
+    <div class="note-bar" style="margin-bottom:.75rem">Each gap is rated based on frequency in Roux interviews and benchmarked against higher education peer institution research and best practices. Ratings: <span style="background:#D41B2C;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">Critical</span> = legal risk or operational failure without action &nbsp;·&nbsp; <span style="background:#297496;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">Important</span> = significant impact on experience and retention &nbsp;·&nbsp; <span style="background:#62B6D0;color:#0C3354;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">Nice to Have</span> = quality of life improvement</div>
+    <div class="note-bar" style="margin-bottom:1.5rem;background:var(--bg3);font-size:11px"><strong>Note on ratings across tabs:</strong> Each tab uses a different rating axis. <strong>Gaps</strong> rates severity of the gap (Critical/Important/Nice to Have) benchmarked against peer institutions. <strong>Key Findings</strong> rates how many of the 5 persona groups raised the finding (5/5 = universal, 1/5 = one group only). <strong>Recommendations</strong> rates confidence based on breadth of evidence. A finding can be Critical on Gaps but 1/5 on Key Findings — meaning it is serious but only surfaced within one group. This is intentional, not inconsistent.</div>
+
+    <!-- SECTION: PEOPLE & STAFFING -->
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#C6EFFC;border-radius:8px">People &amp; Staffing</div>
+    <div style="margin-bottom:1.25rem">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Roles not backfilled — staffing at breaking point</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Unanimous across all staff interviews. Research shows universities that operate with chronic understaffing see 2–3x higher turnover rates and significant declines in service quality. <a href="https://www.educause.edu/research-and-publications/research/core-data-service" style="color:#297496;font-size:11px" target="_blank">[EDUCAUSE]</a></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">AV/IT single point of failure — no redundancy</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">One person covering all technical support is flagged as an operational risk across both staff and research groups. EDUCAUSE identifies single points of failure in IT as among the highest-risk campus infrastructure gaps, particularly as institutions scale event programming.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No standardized onboarding — team-dependent experience</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised across staff, research, students, and co-ops. SHRM research shows employees who experience structured onboarding are 69% more likely to stay for 3+ years. <a href="https://www.shrm.org/topics-tools/tools/toolkits/understanding-designing-implementing-onboarding-programs" style="color:#297496;font-size:11px" target="_blank">[SHRM]</a> McKinsey identifies decentralized onboarding in universities as a top compliance and retention risk. UNC Chapel Hill and University of Minnesota both cite standardized onboarding as a strategic priority.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Postdoc-specific onboarding gap</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Postdocs receive significantly less information than faculty about progression and resources. Best practice at peer institutions (MIT, Johns Hopkins, UC system) includes a dedicated postdoc onboarding track and formal postdoc association with structured check-ins.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Informal knowledge brokers overloaded</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Specific individuals absorbing disproportionate institutional load. This is a documented retention risk — when these individuals leave, institutional knowledge disappears. Best practice is knowledge mapping and documented SOPs before key staff transitions.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: SPACE & FACILITIES -->
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#C6EFFC;border-radius:8px">Space &amp; Facilities</div>
+    <div style="margin-bottom:1.25rem">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Insufficient private and enclosed space</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named in nearly every session — the most frequently mentioned infrastructure gap in the entire corpus. SCUP (Society for College and University Planning) benchmarks show that high-performing research campuses allocate 25–35% of workspace to private or semi-private settings. <a href="https://www.scup.org/resource/planning-for-higher-education/" style="color:#297496;font-size:11px" target="_blank">[SCUP]</a> Purely open-plan offices are increasingly cited in higher ed facilities literature as counterproductive for research and sensitive student work.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No private space for sensitive conversations</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Glass-walled rooms are inadequate for HR conversations, student crisis support, and financial aid discussions. FERPA and Title IX compliance standards require private spaces for sensitive student interactions. <a href="https://studentprivacy.ed.gov/" style="color:#297496;font-size:11px" target="_blank">[FERPA]</a> <a href="https://www2.ed.gov/about/offices/list/ocr/docs/tix_dis.html" style="color:#297496;font-size:11px" target="_blank">[Title IX]</a> Peer institutions (e.g. Northeastern Boston) provide dedicated private rooms for these purposes as a baseline.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Room booking enforcement gap</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Rooms show as available but are physically occupied with no enforcement mechanism. Best practice at peer institutions uses touchpad check-in with automatic release after 10–15 minutes of no check-in. MIT, Stanford, and Cornell all employ automated room release systems.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Wellness room misuse — pumping rooms inaccessible</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Wellness rooms being used for napping, locking out people who need them for pumping. The PUMP Act (2022) requires reasonable break time and private space for nursing employees. This is a legal compliance issue, not just a convenience gap. <a href="https://www.dol.gov/agencies/whd/pump-act" style="color:#297496;font-size:11px" target="_blank">[DOL.gov]</a></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No dedicated student space</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Students want a space separate from professional events and work. ACPA and NASPA student affairs benchmarks identify dedicated student commons as a core belonging and retention infrastructure. <a href="https://www.naspa.org/files/dmfile/Task_Force_TFOE_Report.pdf" style="color:#297496;font-size:11px" target="_blank">[NASPA]</a> Institutions without them consistently report lower student satisfaction and engagement scores.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Nice to Have</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Outdoor space, showers, bike storage, gym access</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised by multiple groups. WELL Building Standard benchmarks flag shower access as important for active commuters. Increasingly common in peer innovation campuses (e.g. MIT Media Lab, CMU IDEATE). Quality of life amenities that support retention and recruitment.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: SYSTEMS & TECHNOLOGY -->
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#C6EFFC;border-radius:8px">Systems &amp; Technology</div>
+    <div style="margin-bottom:1.25rem">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Systems don't integrate — manual data transfer is the norm</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named across all 5 persona groups. EDUCAUSE 2024 benchmarks identify system integration as the #1 unmet technology need in higher education operations. <a href="https://www.educause.edu/research-and-publications/research/it-metrics" style="color:#297496;font-size:11px" target="_blank">[EDUCAUSE]</a> Institutions with 25+ disconnected platforms (as reported here) are in the highest-risk tier for data loss, duplication errors, and staff burnout.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">HIPAA-compliant HPC unavailable</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">The current HPC cluster is not HIPAA-compliant, blocking health and life sciences research. This is a legal compliance issue. Peer research institutions (BU, Tufts, Brown) all provide HIPAA-compliant computing environments as a baseline for health research faculty.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Software fatigue — 25+ platforms, multiple passwords</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised in focus groups. EDUCAUSE research shows staff cognitive load from platform switching reduces productivity by up to 20%. <a href="https://www.educause.edu/research-and-publications/research" style="color:#297496;font-size:11px" target="_blank">[EDUCAUSE]</a> Best practice is platform consolidation and single sign-on (SSO) implementation — a standard feature at most peer R1 institutions.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">CRM/Salesforce not fit for student tracking</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;font-size:12px;line-height:1.55">Raised by multiple staff across Jim's interviews. Salesforce is widely used in higher ed but requires significant customization for student pathways. Peer institutions (Northeastern Boston, Emerson, Suffolk) use Salesforce Education Cloud or Slate as purpose-built alternatives.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">SOPs person-dependent — no centralized documentation</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised in focus groups. When key staff leave, institutional knowledge leaves with them. Best practice is a living SOP repository (Confluence, SharePoint, or Notion) with assigned ownership and regular review cycles. Northeastern Boston is already moving in this direction.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Nice to Have</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Envoy underdeployed for guest management</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">The tool exists and is already paid for. Full deployment is a quick win requiring only an SOP and training, not new investment.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: INFORMATION & KNOWLEDGE -->
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#C6EFFC;border-radius:8px">Information &amp; Knowledge Access</div>
+    <div style="margin-bottom:1.25rem">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No central knowledge base — logistics opaque across all groups</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Every group defaults to asking a person. This creates overload on informal knowledge brokers and inconsistent answers. EDUCAUSE and NACUBO identify a centralized, searchable knowledge base as a baseline operational requirement for satellite campuses. Absence correlates with lower staff confidence and higher error rates.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Org chart and team descriptions missing or unknown</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Multiple staff can't name colleagues on adjacent teams. Best practice at peer institutions includes a published org chart with team descriptions, contact roles, and a staff directory — updated quarterly. This is standard at all Northeastern global campuses except Portland.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Event definitions and fee structures unclear</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Staff can't determine when to charge fees, use contracts, or treat events as co-hosted. This creates legal and financial risk. Peer institutions publish clear event policy matrices distinguishing internal, external, co-hosted, and VIP event categories with corresponding fee and contract requirements.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Emergency response protocols missing</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Front desk staff have no protocol for high-stakes situations including federal officials arriving on campus and students in crisis. Clery Act compliance requires documented emergency response procedures. This is a legal and safety gap — every accredited institution must have documented cross-departmental crisis response protocols. <a href="https://clerycenter.org/policy-resources/the-clery-act/" style="color:#297496;font-size:11px" target="_blank">[Clery Center]</a></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: ACCESSIBILITY -->
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#C6EFFC;border-radius:8px">Accessibility &amp; Inclusion</div>
+    <div style="margin-bottom:1.25rem">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No formal accommodations process</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">A prospective PhD student did not come to Roux because no accommodation guidance existed. ADA Title II (updated 2024) and Section 504 require institutions receiving federal funding to have a named contact and documented process. Deadline for compliance: April 2026–2027 depending on size. This is a legal requirement, not optional. <a href="https://www.ada.gov/resources/2024-03-08-web-rule/" style="color:#297496;font-size:11px" target="_blank">[ADA.gov]</a></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Critical</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Phone booths and physical spaces inaccessible to wheelchair users</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Phone booth lips/steps, narrow widths, and high-top reception tables exclude wheelchair users. ADA requires accessible routes and facilities. These must be addressed in the new building design brief — retrofitting after construction is significantly more expensive. <a href="https://www.ada.gov/resources/title-ii-primer/" style="color:#297496;font-size:11px" target="_blank">[ADA.gov]</a></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No braille signage or accessible wayfinding</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">ADA Standards for Accessible Design require braille on room identification signage. <a href="https://www.access-board.gov/ada/#ada-703" style="color:#297496;font-size:11px" target="_blank">[ADA Standards §703]</a> Color-dependent systems (keypads) present barriers for sight-impaired users. This is a compliance gap that should be addressed in the current building and built into new building specs.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Parking equity — cost is a barrier for lower-salaried staff</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Tiered parking pricing by salary is a widely adopted model at peer institutions (MIT, Harvard, UMass) to ensure lower-paid staff are not disproportionately burdened. Remote work flexibility is also flagged as an equity issue for those who cannot easily afford to commute.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Nice to Have</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Adjustable/dimmable lighting and sensory accommodations</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised by research faculty and staff. WELL Building Standard v2 recommends tunable lighting in workspaces. <a href="https://v2.wellcertified.com/en/wellv2/light" style="color:#297496;font-size:11px" target="_blank">[WELL v2]</a> Increasingly standard in new higher education buildings as a low-cost, high-impact accommodation.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: COMMUNITY & CULTURE -->
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#C6EFFC;border-radius:8px">Community &amp; Culture</div>
+    <div style="margin-bottom:1.25rem">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">PhD student community infrastructure missing</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">No journal club, academic seminar series, or structured PhD community. CGS (Council of Graduate Schools) standards identify these as baseline requirements for doctoral programs. <a href="https://cgsnet.org/best-practices-in-doctoral-education/" style="color:#297496;font-size:11px" target="_blank">[CGS]</a> Absence contributes to attrition — doctoral completion rates drop significantly without peer community infrastructure.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#297496;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Important</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No feedback loop built into events and operations</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Live feedback collection achieves 80–90% response rates vs. ~20% for post-event surveys. Peer institutions with structured feedback cultures (MIT, Stanford) report significantly higher operational improvement rates. Building feedback loops into all events is a low-cost, high-return investment.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">Nice to Have</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Social infrastructure — Fikas, informal gatherings, community norms</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Community-building programming is consistently linked to retention in higher education research. Informal touchpoints (Fikas, potlucks, mixer events) were cited positively when they existed and missed when discontinued. Low cost, high cultural impact.</div>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+  <!-- CONFIDENCE -->
+  <div id="confidence" class="panel">
+
+    <div class="note-bar" style="margin-bottom:1.5rem">Confidence ratings reflect how strongly each finding is supported across the full corpus of 26 individual interviews and 5 focus group sessions. <span style="background:#D41B2C;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">5/5</span> &nbsp;·&nbsp; <span style="background:#0C3354;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">4/5</span> &nbsp;·&nbsp; <span style="background:#297496;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">3/5</span> &nbsp;·&nbsp; <span style="background:#62B6D0;color:#0C3354;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">2/5</span> &nbsp;·&nbsp; <span style="background:#A0E0EF;color:#0C3354;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500">1/5</span> = single group, directional</div>
+
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#D41B2C;border-radius:8px"><span style="color:#ffffff;font-weight:500">5/5 — Raised by all persona groups</span></div>
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">5/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">People and community are the primary draw to campus</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised across all 5 persona groups and consistent throughout the corpus — the strongest signal in the research.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#D41B2C;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">5/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Systems don't talk to each other — manual data transfer is the norm</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named across all 5 persona groups with specific examples. No one has bandwidth to fix it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#0C3354;border-radius:8px"><span style="color:#C6EFFC;font-weight:500">4/5 — Raised by 4 persona groups</span></div>
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#0C3354;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">4/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Insufficient private and enclosed space</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named in nearly every session across all 5 persona groups. The most frequently mentioned infrastructure gap in the corpus. Co-ops raised it in their second focus group session, noting temperature, seating, and phone booth access as specific physical space concerns.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#0C3354;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">4/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Practical logistics are opaque — information is hard to find</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Same pattern reported by new and experienced campus users alike. Every group defaults to asking a person rather than finding documentation.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#0C3354;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">4/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Onboarding is inconsistent and team-dependent</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Consistent pattern across very different roles and groups. Incubator members receive no onboarding at all.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#0C3354;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">4/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Edge cases and nuanced situations require a human</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named across staff, research, students, and co-ops. Consistent framing: "you don't know what you need until you start talking to someone."</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#0C3354;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">4/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Claude is broadly valued as a work tool</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named positively by staff, research, incubator, and co-op groups. Sponsored account access gap affects incubator members. Students were not directly asked.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#297496;border-radius:8px"><span style="color:#ffffff;font-weight:500">3/5 &amp; 2/5 — Raised by 2–3 persona groups</span></div>
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#0C3354;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">4/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Front desk must remain human</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Staff, students, and incubator users were explicit. Automating it would undermine the sense of welcome and belonging on campus.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">2/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Staff capacity is at a breaking point</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Unanimous across all staff interviews. Emotionally intense and consistent. Burnout language is uniquely prominent in this group.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">2/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Research faculty have no private offices</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Consistent across all research and teaching interviews including postdocs. Has gotten worse over time.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">2/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">AV/IT is a single point of failure</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named as an operational risk by both staff and research groups. One person covering all technical support with no backup.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">2/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Informal knowledge brokers are overloaded</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named independently by staff and research. Specific individuals absorbing disproportionate institutional load that should be distributed or documented.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">2/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Room booking enforcement is needed</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Rooms appear available but are physically occupied. No mechanism to address this currently exists.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#62B6D0;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">2/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Accessibility gaps are specific and actionable</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Recent interviews surfaced concrete physical, sensory, transportation, and policy gaps. ADA Title II compliance deadline approaching.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.5rem;font-size:13px;font-weight:500;color:#0C3354;padding:8px 12px;background:#A0E0EF;border-radius:8px"><span style="color:#0C3354;font-weight:500">1/5 — Raised by 1 group, needs broader validation</span></div>
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#A0E0EF;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">1/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">No formal accommodations process — legal risk</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">One concrete documented case — prospective student did not come to Roux. ADA Title II deadline approaching.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#A0E0EF;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">1/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">HIPAA-compliant HPC is a critical gap</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named as a major unmet need. Legal compliance issue for health research faculty. Not corroborated by others but highly specific and serious.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#A0E0EF;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">1/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">PhD student pipeline has collapsed</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised with strong language by one faculty member; corroborated thematically by another. Critical mass failure in life sciences and engineering.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#A0E0EF;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">1/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Postdoc-specific onboarding gap</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Postdocs receive less information than faculty about progression and available resources. Directional but specific and actionable.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+        <span style="background:#A0E0EF;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">1/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Sponsored account tool access gap</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Named directly by one incubator member. Likely affects other embedded and sponsored users in a similar position.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0">
+        <span style="background:#C6EFFC;color:#0C3354;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px">1/5 personas</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Co-op software access gaps</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.55">Raised by two individuals in a single session. Directional only — needs validation across cohorts before acting on.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+    <!-- RECOMMENDATIONS -->
+  <div id="recs" class="panel">
+    <div class="note-bar">Prioritized recommendations for leadership consideration. Ranked by confidence, severity, and cross-persona reach.</div>
+
+    <div style="margin: 1.5rem 0 .75rem; font-size: 15px; font-weight: 500; color: #0C3354; padding: 8px 12px; background: #C6EFFC; border-radius: 8px;"> Urgent &amp; Immediate Action</div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">1</div><div class="rec-title">Address Personnel Capacity Now</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Backfill open roles in campus operations and events before taking on increased building capacity</li>
+        <li>Create a second AV/IT support position to eliminate the current single point of failure</li>
+        <li>Establish a formal flex-time policy for staff who cover evening and weekend events</li>
+        <li>Acknowledge and address burnout before it results in further departures</li>
+        <li>Reinstate regular all-staff touchpoints to rebuild cross-team communication and community</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-red">Urgent</span><span class="rec-tag">Staff</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">2</div><div class="rec-title">Build a centralized onboarding experience for all campus users</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Create a standard onboarding process that applies to staff, researchers, incubator members, and co-ops</li>
+        <li>Include an org chart with team descriptions, goals, faces, and titles</li>
+        <li>Cover practical logistics: system access, parking, guest WiFi, campus closure schedule, who handles what</li>
+        <li>Implement a buddy program or structured welcome meetings modeled on the Boston campus approach</li>
+        <li>Develop a separate onboarding track for postdocs that addresses progression expectations and available resources</li>
+        <li>Create a version for incubator members who are not NU-affiliated but need access to campus systems</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-red">Immediate action</span><span class="rec-tag">4/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">3</div><div class="rec-title">Integrate Systems to Eliminate Manual Work</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Facilitate a working session to map all systems and identify the highest-value integration opportunities</li>
+        <li>Prioritize: Salesforce/Mailchimp, Tripleseat/Robin, NUWorks/Salesforce, newsletter/Mailchimp, SharePoint/Google Drive</li>
+        <li>Assign ownership and capacity to act on integration improvements — this cannot be done by teams already at capacity</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-mid">Systems</span><span class="rec-tag">5/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">4</div><div class="rec-title">Create a Central Knowledge Base</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Build a single, maintained hub covering logistics, policies, and who handles what</li>
+        <li>Include a staff directory with roles, teams, and points of contact — especially important given recent turnover</li>
+        <li>Actively communicate where to find things; building it is not enough if people don't know it exists</li>
+        <li>Keep it current — fragmented and outdated documentation is worse than none</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-red">Immediate action</span><span class="rec-tag">4/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">5</div><div class="rec-title">Enforce Room Booking and Space Use Policies</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Require check-in on room touchpads</li>
+        <li>Publish and enforce clear policies on appropriate use of phone booths, meeting rooms, and wellness rooms</li>
+        <li>Designate a clear point of contact when spaces are used inappropriately</li>
+        <li>Wellness rooms are locked for longer than their scheduled time, making it difficult for nursing mothers to access and for wider community members looking for the first aid kit</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-blue">Quick win</span><span class="rec-tag">Research + staff</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">6</div><div class="rec-title">Deploy Envoy for Guest Management</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Write and distribute a clear SOP for all staff on how to use Envoy correctly</li>
+        <li>Ensure guest notifications go to the right people, not just one point of contact</li>
+        <li>Use Envoy's existing features for parking validation and guest check-in before investing in other solutions</li>
+        <li>Complete full rollout before the new building opens</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-blue">Quick win</span><span class="rec-tag">Staff</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">7</div><div class="rec-title">Expand Tool Access for All Campus Users</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Review sponsored account restrictions that currently block access to Claude and other productivity tools</li>
+        <li>Consider a co-op tool access package that includes Claude, Canva Pro, and Figma</li>
+        <li>Explore whether incubator members can be brought into NU tool subscriptions without full NU affiliation</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag">Tools access</span><span class="rec-tag">Incubator + co-ops</span><span class="conf-med" style="margin-top:0">Medium confidence</span></div>
+    </div>
+
+    <div style="margin: 1.5rem 0 .75rem; font-size: 15px; font-weight: 500; color: #0C3354; padding: 8px 12px; background: #C6EFFC; border-radius: 8px;; margin-top: 2rem;"> Future &amp; New Building Considerations</div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">1</div><div class="rec-title">New Building Needs a Spectrum of Spaces</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Provide individual offices or bookable focus rooms for faculty and staff with heavy meeting loads</li>
+        <li>Include fully soundproof rooms for HR conversations, student crisis support, and sensitive discussions</li>
+        <li>Offer a range of phone booth sizes, including options for 2–3 people</li>
+        <li>Create a dedicated student zone that does not compete with professional event or work space</li>
+        <li>Include rooms with adjustable and dimmable lighting to support sensory and accessibility needs</li>
+        <li>Ensure all meeting room and bathroom doors have accessible hardware — no sliding doors</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-navy">New building</span><span class="rec-tag">4/5 personas</span><span class="conf-high" style="margin-top:0">High confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">2</div><div class="rec-title">Establish a Formal Accommodations Process</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Designate a named point of contact for accommodation requests — make this publicly known</li>
+        <li>Document a process that mirrors the established Boston campus approach</li>
+        <li>Communicate proactively to prospective students, visitors, and new hires before they need to ask</li>
+        <li>Ensure accessible door hardware, dimmable lighting, and other physical features are built into the new building spec</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-navy">New building</span><span class="rec-tag">Research + staff</span><span class="conf-med" style="margin-top:0">Medium confidence</span></div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header"><div class="rec-rank">3</div><div class="rec-title">Build Academic Infrastructure for PhD Students</div></div>
+      <ul style="margin:0 0 .75rem 1.25rem;padding:0;font-size:12px;color:var(--text2);line-height:1.8">
+        <li>Establish a journal club, academic seminar series, and structured student community before the new building opens</li>
+        <li>Focus on building critical mass in one or two areas rather than trying to replicate the Boston model</li>
+        <li>Acknowledge that people coming to Maine have different community needs — design intentionally for that</li>
+        <li>Create a postdoc group with formal structure to ensure postdocs are getting what they need to progress</li>
+      </ul>
+      <div class="rec-tags"><span class="rec-tag-navy">New building</span><span class="rec-tag">Research</span><span class="conf-med" style="margin-top:0">Medium confidence</span></div>
+    </div>
+
+  </div>
+
+  <!-- VISION -->
+  <div id="vision" class="panel">
+
+    <div class="sec-title">All-Hands Break Out — Ideal State for Infrastructure &amp; Operations</div>
+    <div class="note-bar" style="margin-bottom:1.5rem">Synthesized from multiple focus groups facilitated by Liv Berg and Annie Chuprevich · ~30 participants · Whiteboard session</div>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#D41B2C;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:13px;font-weight:500;color:#ffffff">Flagged Gaps Requiring Immediate Attention</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Emergency response protocols are a critical gap — cross-departmental training is needed for situations like a student in crisis</li>
+        <li>Federal officials arrived on campus and the front-desk student had no clear protocol for how to respond</li>
+        <li>Single people are doing multiple roles with no backup — when they leave, everything they carry leaves with them</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">SOPs &amp; Knowledge Management</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>SOPs should be centralized, up to date, and connected to Boston — with a clear rationale for where Roux aligns or diverges</li>
+        <li>Currently at risk of being person-dependent — when key people leave, institutional knowledge walks out with them</li>
+        <li>Confluence flagged as a potential home for SOPs; the Boston team is already moving in this direction</li>
+        <li>SOPs should be loaded into AI tools so staff can query them in real time — especially useful for front desk students handling unexpected situations</li>
+        <li>A search/chat/CRM model for the knowledge base (e.g. Ask Fin chatbot) is the right direction, even if imperfect today</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Systems &amp; Software</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Aim for a minimum viable number of software platforms with maximum integration between them</li>
+        <li>Students and staff are experiencing significant software fatigue — 25+ systems, multiple passwords, constant context-switching</li>
+        <li>New event software is incoming and is seen as adding to the load rather than reducing it</li>
+        <li>Event management should <strong>not</strong> be automated — it requires human judgment to validate that requests make sense</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Staffing &amp; Redundancy</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>No single point of failure per function — skills and knowledge should be mapped and shared, not assumed</li>
+        <li>The new campus will be significantly larger (two major buildings, waterfront/pier) — current staffing levels are already insufficient</li>
+        <li>Co-ops and students are filling operational gaps but cycle out — this is not a sustainable model</li>
+        <li>Informal expertise ("they know that") should not substitute for proper role definition and compensation</li>
+        <li>Lab facilities need dedicated staff for preventative maintenance to remain operationally sustainable</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Facilities &amp; Community Norms</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>More customized facilities — adjustable desks, automated HVAC based on occupancy</li>
+        <li>Clearer community norms for campus use and shared spaces — students are using designated spaces incorrectly (e.g. nursing mothers' room)</li>
+        <li>Parking equity needs to be addressed — tiered pricing by salary proposed (below threshold = free; above = pay)</li>
+        <li>Current parking system is unreliable — gate arm failures with no one answering the support line</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0C3354;border-radius:8px;margin-bottom:.75rem">
+        <div style="font-size:13px;font-weight:500;color:#C6EFFC">Feedback Culture &amp; AI Opportunities</div>
+      </div>
+      <ul style="margin:0 0 0 1.25rem;padding:0;font-size:13px;color:var(--text2);line-height:1.9">
+        <li>Build a feedback loop into all events and processes: collect → synthesize → share back → act — all three steps need to be resourced</li>
+        <li>Live in-session feedback collection achieves ~80–90% response rates vs. ~20% when left to self-completion</li>
+        <li>AI can help synthesize feedback: upload responses, surface top trends with supporting quotes</li>
+        <li>Quantitative feedback needed from all campus users — not just staff, but students, co-ops, and community visitors</li>
+      </ul>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+function togglePersona(id, card) {
+  const body = document.getElementById(id);
+  const icon = document.getElementById(id + '-icon');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  icon.textContent = isOpen ? '▸' : '▾';
+  card.style.background = isOpen ? 'var(--bg)' : 'var(--bg2)';
+}
+</script>
+</body>
+</html>
